@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
+import { useHistory } from "react-router";
+import { FEED_QUERY } from "./LinkList";
+import { LINKS_PER_PAGE } from "../constants";
 
 const CREATE_LINK_MUTATION = gql`
   mutation PostMutation($description: String!, $url: String!) {
@@ -13,6 +16,8 @@ const CREATE_LINK_MUTATION = gql`
 `;
 
 const CreateLink: React.FC = () => {
+  const history = useHistory();
+
   const [formState, setFormState] = useState({
     description: "",
     url: "",
@@ -23,6 +28,36 @@ const CreateLink: React.FC = () => {
       description: formState.description,
       url: formState.url,
     },
+    update: (cache, { data: { post } }) => {
+      const take = LINKS_PER_PAGE;
+      const skip = 0;
+      const orderBy = { createdAt: "desc" };
+
+      const data: any = cache.readQuery({
+        query: FEED_QUERY,
+        variables: {
+          take,
+          skip,
+          orderBy,
+        },
+      });
+
+      cache.writeQuery({
+        query: FEED_QUERY,
+        data: {
+          feed: {
+            // 여기 왜 오류가 나는가?
+            links: [post, ...data.feed.links],
+          },
+        },
+        variables: {
+          take,
+          skip,
+          orderBy,
+        },
+      });
+    },
+    onCompleted: () => history.push("/new/1"),
   });
 
   return (
