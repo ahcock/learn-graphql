@@ -3,6 +3,7 @@ import { useMutation, gql } from "@apollo/client";
 import { useHistory } from "react-router";
 import { FEED_QUERY } from "./LinkList";
 import { LINKS_PER_PAGE } from "../constants";
+import { FEED_QUERY_RESULT } from "./LinkList";
 
 const CREATE_LINK_MUTATION = gql`
   mutation PostMutation($description: String!, $url: String!) {
@@ -33,7 +34,7 @@ const CreateLink: React.FC = () => {
       const skip = 0;
       const orderBy = { createdAt: "desc" };
 
-      const data: any = cache.readQuery({
+      const data = cache.readQuery<FEED_QUERY_RESULT>({
         query: FEED_QUERY,
         variables: {
           take,
@@ -42,11 +43,17 @@ const CreateLink: React.FC = () => {
         },
       });
 
+      if (!data) {
+        return;
+      }
+
+      const { feed } = data;
+
       cache.writeQuery({
         query: FEED_QUERY,
         data: {
           feed: {
-            links: [post, ...data.feed.links],
+            links: data ? [post, ...feed.links] : "",
           },
         },
         variables: {
