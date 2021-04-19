@@ -46,7 +46,6 @@ const CreateLink: React.FC = () => {
         query: FEED_QUERY,
         data: {
           feed: {
-            // 여기 왜 오류가 나는가?
             links: [post, ...data.feed.links],
           },
         },

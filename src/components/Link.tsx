@@ -3,6 +3,9 @@ import { AUTH_TOKEN, LINKS_PER_PAGE } from "../constants";
 import { timeDifferenceForDate } from "../utils";
 import { gql, useMutation } from "@apollo/client";
 import { FEED_QUERY } from "./LinkList";
+import { FEED_QUERY_RESULT } from "./LinkList";
+import { fchmod } from "fs";
+import { LinkType } from "../type";
 
 const VOTE_MUTATION = gql`
   mutation VoteMutation($linkId: ID!) {
@@ -26,14 +29,7 @@ const VOTE_MUTATION = gql`
 
 interface LinkProps {
   key: string;
-  link: {
-    id: string;
-    description: string;
-    url: string;
-    votes: [number];
-    postedBy: any;
-    createdAt: string;
-  };
+  link: LinkType;
   index: number;
 }
 
@@ -51,11 +47,16 @@ const Link: React.FC<LinkProps> = (props) => {
       linkId: link.id,
     },
     update(cache, { data: { vote } }) {
-      const { feed } = cache.readQuery({
+      const { feed }: any = cache.readQuery({
         query: FEED_QUERY,
+        variables: {
+          take,
+          skip,
+          orderBy,
+        },
       });
 
-      const updateLinks = feed.links.map((feedLink: any) => {
+      const updateLinks = feed.links.map((feedLink: LinkType) => {
         if (feedLink.id === link.id) {
           return {
             ...feedLink,
@@ -69,6 +70,11 @@ const Link: React.FC<LinkProps> = (props) => {
         data: {
           feed: {
             links: updateLinks,
+          },
+          variables: {
+            take,
+            skip,
+            orderBy,
           },
         },
       });

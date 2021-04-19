@@ -3,6 +3,9 @@ import ReactDOM from "react-dom";
 import "./styles/index.css";
 import App from "./components/App";
 import { BrowserRouter } from "react-router-dom";
+import { split } from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
+import { getMainDefinition } from "@apollo/client/utilities";
 import { AUTH_TOKEN } from "./constants";
 
 // We import all the dependencies we need to wire up the Apollo client, all from @apollo/client.
@@ -31,6 +34,28 @@ const authLink = setContext((_, { headers }) => {
     },
   };
 });
+
+const wsLink = new WebSocketLink({
+  uri: `ws://localhost:4000/graphql`,
+  options: {
+    reconnect: true,
+    connectionParams: {
+      authToken: localStorage.getItem(AUTH_TOKEN),
+    },
+  },
+});
+
+const link = split(
+  ({ query }) => {
+    let definition = getMainDefinition(query);
+    return (
+      definition.kind === "OperationDefinition" &&
+      definition.operation === "subscription"
+    );
+  },
+  wsLink,
+  authLink.concat(httpLink)
+);
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),

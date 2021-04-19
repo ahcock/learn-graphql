@@ -10,7 +10,7 @@ const Header = () => {
     <div className="flex pal justify-between nowrap orange">
       <div className="flex flex-fixed black">
         <div className="fw7 mr1">Hacker News</div>
-        <Link to="/create" className="ml1 no-underline black">
+        <Link to="/" className="ml1 no-underline black">
           new
         </Link>
         <div className="ml1">|</div>
